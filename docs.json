@@ -1,7 +1,7 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "mint",
-  "name": "그릿의 개발 블로그",
+  "name": "🌱 그릿의 개발 블로그",
   "colors": {
     "primary": "#16A34A",
     "light": "#07C983",
@@ -30,17 +30,14 @@
       },
       {
         "tab": "학습 정리(TIL)",
-        "groups": [
+        "pages": [
           {
-            "group": "리액트"
+            "group": "DB",
+            "pages": ["TIL/DB/TypeORM"]
           }
         ]
       }
     ]
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
   },
   "navbar": {
     "primary": {
@@ -49,7 +46,6 @@
       "href": "https://dashboard.mintlify.com"
     }
   },
-
   "footer": {
     "socials": {
       "github": "https://github.com/Grit03"
