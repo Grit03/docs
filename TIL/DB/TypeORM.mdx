@@ -1,16 +1,135 @@
 ---
 title: "TypeORM 학습"
 description: "TypeORM을 학습하고, 마이그레이션을 적용해보자"
-keywords:
-  ["백엔드", "DB", "TypeORM", "마이그레이션", "프론트 개발자를 위한 백엔드 101"]
+keywords: ["백엔드","DB","TypeORM","마이그레이션","프론트 개발자를 위한 백엔드 101"]
 product: "API"
 ---
 
----
+## ORM 이란?
+
+> 객체와 관계형 데이터베이스 간에 데이터를 자동으로 매핑해주는 기술
+
+ORM은 개발자가 코드에서 사용하는 객체와 관계형 DB의 테이블 사이의 데이터를 자동으로 변환해주는 기술이다. 이를 통해 **SQL 직접 작성 없이 객체 지향 방식으로 DB에 접근**할 수 있다.
+
+## **TypeORM**
+
+**TypeORM**은 TypeScript와 JavaScript를 위한 ORM 라이브러리입니다. **Node.js** 환경에서 사용할 수 있으며, **데코레이터**와 **타입 안정성**을 제공합니다.
+
+### TypeORM 장점
+
+- \*\*타입 안정성: \*\*TypeScript의 타입 시스템을 활용하여 런타임 오류를 줄이고, 개발 중 타입 오류를 사전에 방지한다.
+- \*\*데코레이터를 통한 매핑: **`@Entity()`**, **`@Column()`**, \*\*`@PrimaryGeneratedColumn()` 등의 데코레이터를 사용하여, 클래스와 데이터베이스 테이블 간의 매핑을 설정한다.
+- **리포지토리 패턴 사용**: 데이터베이스 작업을 **리포지토리**를 통해 캡슐화하여 코드의 재사용성을 높이고, 데이터 접근을 일관성 있게 유지\
+  \*\*(예시) \*\*`UserRepository`\*\*를 사용하여 \*\*`UserEntity`**에 대한 CRUD 작업을 처리**
+
+  <Expandable title="TypeORM이 리포지토리 패턴을 사용하는 목적">
+    **데이터 접근 로직 추상화 및 체계화**
+
+    레포지토리 패턴은 데이터를 조회, 저장, 수정, 삭제하는 등의 데이터 접근 로직을 한데 모아 관리할 수 있게 해준다. 복잡한 쿼리를 분리하고 코드의 재사용성을 높인다.
+  </Expandable>
+- **마이그레이션 지원: 마이그레이션** 기능을 통해 데이터베이스 **스키마의 변경 이력을 관리**하고, 데이터베이스 구조를 쉽게 업데이트할 수 있습니다.\
+  \*\*(예시) \*\*스키마 변경 시 `typeorm migration:generate`와 `typeorm migration:run` 명령어를 사용합니다.
+- \*\*다양한 데이터베이스 지원: \*\*MySQL, PostgreSQL, SQLite, MariaDB 등 다양한 관계형 데이터베이스를 지원
+- **Active Record & Data Mapper 패턴 지원**
+
+  <Note>
+    Active Record와 Data Mapper 패턴이 뭐야?
+
+    \
+    **영속성에 대한 로직(DB 접근 등)을 누가/어떻게 할지를 정하는 패턴이다.**\
+    (엔티티 스스로 vs 별도 리포지토리/매퍼)
+    - **Active Record** 패턴: 엔티티가 자신의 데이터베이스 작업을 처리합니다.\
+      예) User, Order과 같은 클래스들이 직접 데이터베이스 작업을 처리하는 모델
+    - **Data Mapper** 패턴: 데이터베이스 작업을 별도의 레포지토리가 처리합니다.\
+      예) 레포지토리를 직접 구현하여, DB 작업 로직을 처리한다.
+  </Note>
+
+## 마이그레이션이란?
+
+> 데이터베이스 스키마 변경 이력 관리 및 적용
+
+마이그레이션은 **데이터베이스 스키마를 체계적으로 관리하고, 버저닝하기 위한 기능**이다.\
+쉽게 말해, 데이터베이스 스키마(테이블, 컬럼 등)의 구조 변화를 코드로 기록하고, 이를 순차적으로 적용하거나 되돌릴 수 있게 도와주는 도구이다. TypORM에서는 필요한 시점에 `Up/Down` 메서드를 통해 적용(`Up`)하거나 되돌릴(`Down`) 수 있게 해주는 기능이에요.
+
+### TypeORM Config 설정
+
+```shellscript
+npm i @nestjs/config
+```
+
+Nest.js에 기본적으로 다양한 config 설정을 돕는 `@nestjs/config` 패키지를 설치하여 사용한다.\
+config가 충돌되지 않고, 사용하기 편하게 한다.
+
+```typescript {16}
+import { registerAs } from '@nestjs/config';
+import { DataSource, DataSourceOptions } from 'typeorm';
+
+const config = {
+  type: 'postgres', // DB 타입
+  host: `${process.env.DB_HOST || 'localhost'}`,
+  port: parseInt(`${process.env.DB_PORT || '5432'}`, 10),
+  username: `${process.env.DB_USERNAME || 'test'}`,
+  password: `${process.env.DB_PASSWORD || 'test'}`,
+  database: `${process.env.DB_DATABASE || 'db_test'}`,
+  // 번들링된 파일의 엔티티를 가리키도록 설정
+  entities: ['dist/**/**/*.entity{.ts,.js}'], 
+  // 번들링된 파일의 마이그레이션 파일을 가리키도록 설정
+  migrations: ['dist/migrations/*{.ts,.js}'],
+  autoLoadEntities: true, // 엔티티 파일을 자동으로 감지하여 임포트
+  synchronize: false,
+};
+
+export default registerAs('typeorm', () => config);
+export const connectionSource = new DataSource(config as DataSourceOptions);
+```
+
+강조된 `synchronize` 옵션은 nest.js 서버가 시작되면, 실제 DB와 엔티티 파일 간에 뭔가 안맞는 부분이 있을 때(컬럼이 추가되거나, 테이블이 추가되거나 하는 작업들이 반영 안되어 있을 때) 변경사항을 자동을 맞춰준다.
+
+<Danger>
+  프로덕션 환경에서는 TypeORM 설정의 `synchronize` 옵션을 지양해야한다.
+
+  > **예기치 않은 데이터 손실이나 스키마 변경 위험이 있기 때문**
+
+  `synchronize` 옵션은 엔티티 코드와 DB 스키마를 서버 시작 시 자동으로 맞춰주는 기능을 한다. 이 기능은 개발 중엔 편리하지만, 프로덕션에서는 **예상치 못한 스키마 변경**으로 중요한 **데이터가 삭제될 위험**이 있어 사용하지 않는다.
+</Danger>
+
+### 마이그레이션 명령어
+
+```json expandable
+{
+  "scripts": {
+    "typeorm": "ts-node ./node_modules/typeorm/cli",
+    "migration:run": "npm run typeorm migration:run -- -d ./src/config/typeorm.ts",
+    "migration:generate": "npm run typeorm -- -d ./src/config/typeorm.ts migration:generate ./src/migrations/$npm_config_name",
+    "migration:create": "npm run typeorm -- migration:create ./src/migrations/$npm_config_name",
+    "migration:revert": "npm run typeorm -- -d ./src/config/typeorm.ts migration:revert",
+    "migration:show": "npm run typeorm -- -d ./src/config/typeorm.ts migration:show"
+  }
+}
+```
+
+- `migration:run`: 대기 중인 모든 마이그레이션을 실행합니다.\
+  → 실제로 생성된 **마이그레이션 파일을 DB에 반영**해준다.\
+  → DB의 컬럼이 바뀌었거나 데이터베이스 테이블이 새로 추가되었거나 하는 **모든 변경사항을 실제 DB에 반영**해준다.\
+  마이그레이션을 실행해서 생성된 파일의 코드를 보면,`up` 과 `down` 메서드가 생성된다. `up`메서드는 run을 했을 때 실행되고, `down` 메서드는 revert를 했을 때 실행이 된다.
+
+  ![Image Pn](/images/image.png)
+- `migration:generate`: 엔티티와 데이터베이스 스키마의 차이를 기반으로 **새로운 마이그레이션 파일을 생성**합니다.\
+  `--name=Add_CreatedAt_To_Post` 으로 마이그레이션의 이름을 붙일 수 있다.
+- `migration:create`: 빈 마이그레이션 파일을 생성합니다.\
+  → **쓰는 이유**: 내가 원하는 SQL 커맨드를 직접 입력하고, 변경사항을 자동으로 인식하여 쿼리를 작성하는 것을 하고 싶지 않을 때
+- `migration:revert`: 가장 최근에 실행된 마이그레이션을 되돌립니다. → run을 통해서 반영된 마이그레이션을 다시 돌릴 때, 즉 복구할 때 사용하는 커맨드
+- `migration:show`: 적용된 마이그레이션과 대기 중인 마이그레이션 목록을 표시합니다.\
+  → **현재 마이그레이션이 어디까지 진행이 됐고, 어디부터 진행이 되지 않았는지를 표시**
+
+## 주의사항
+
+- 마이그레이션을 실행하기 전에 항상 데이터베이스를 백업하세요.
+- 프로덕션 환경에서 마이그레이션을 실행할 때는 특히 주의가 필요합니다.
+- 마이그레이션 파일은 버전 관리 시스템에 포함되어야 합니다.
+- synchronize 옵션을 false로 설정한 후에는 모든 스키마 변경사항을 마이그레이션을 통해 관리해야 합니다.
 
 <Accordion title="참고 자료">
-
-- 프론트 개발자를 위한 백엔드 101 (NestJS, TypeORM) 강의
-  - [실습] TypeORM 마이그레이션 - DB 컬럼 추가 해보기
-
+  - 프론트 개발자를 위한 백엔드 101 (NestJS, TypeORM) 강의
+    - [실습] TypeORM 마이그레이션 - DB 컬럼 추가 해보기
 </Accordion>
