@@ -33,7 +33,11 @@
         "pages": [
           {
             "group": "DB",
-            "pages": ["TIL/DB/TypeORM"]
+            "pages": ["TIL/DB/*"]
+          },
+          {
+            "group": "Auth",
+            "pages": ["TIL/Auth/*"]
           }
         ]
       }
