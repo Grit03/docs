@@ -7,7 +7,6 @@
     "light": "#07C983",
     "dark": "#15803D"
   },
-
   "favicon": "/favicon.svg",
   "styling": {
     "eyebrows": "breadcrumbs"
@@ -22,7 +21,9 @@
             "pages": [
               {
                 "group": "리액트 훅을 활용한 상태 관리",
-                "pages": ["books/react/리액트 훅을 활용한 상태 관리/5장"]
+                "pages": [
+                  "books/react/리액트 훅을 활용한 상태 관리/5장"
+                ]
               }
             ]
           }
@@ -33,11 +34,9 @@
         "pages": [
           {
             "group": "DB",
-            "pages": ["TIL/DB/*"]
-          },
-          {
-            "group": "Auth",
-            "pages": ["TIL/Auth/*"]
+            "pages": [
+              "TIL/DB/TypeORM"
+            ]
           }
         ]
       }
