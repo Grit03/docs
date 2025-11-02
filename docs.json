@@ -21,8 +21,12 @@
             "pages": [
               {
                 "group": "리액트 훅을 활용한 상태 관리",
+                "pages": ["books/react/리액트 훅을 활용한 상태 관리/5장"]
+              },
+              {
+                "group": "패턴으로 익히고 설계로 완성하는 리액트",
                 "pages": [
-                  "books/react/리액트 훅을 활용한 상태 관리/5장"
+                  "books/react/패턴으로 익히고 설계로 완성하는 리액트/[1부] 리액트 기본 개념/[CH4] 리액트 컴포넌트 설계하기"
                 ]
               }
             ]
@@ -31,11 +35,18 @@
       },
       {
         "tab": "학습 정리(TIL)",
-        "pages": [
+        "groups": [
           {
-            "group": "DB",
+            "group": "Backend",
             "pages": [
-              "TIL/DB/TypeORM"
+              {
+                "group": "DB",
+                "pages": ["TIL/DB/TypeORM"]
+              },
+              {
+                "group": "Auth",
+                "pages": ["TIL/Auth/jwt"]
+              }
             ]
           }
         ]
